@@ -1,0 +1,18 @@
+name: Karakuri
+version: 1.0.0
+main: io.oyasai.karakuri.KarakuriPlugin
+api-version: '1.20'
+authors: [fuuch, OyasaiServer]
+description: "Minecraft Karakuri (動く建築) Plugin using Display Entities"
+commands:
+  karakuri:
+    description: "からくり制御コマンド"
+    aliases: [kk, k]
+    permission: "karakuri.use"
+permissions:
+  karakuri.use:
+    description: "からくり機能を利用する権限"
+    default: true
+  karakuri.admin:
+    description: "からくりの管理者権限"
+    default: op
