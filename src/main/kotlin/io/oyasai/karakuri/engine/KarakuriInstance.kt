@@ -25,6 +25,7 @@ class KarakuriInstance(
   var originalBlockData: org.bukkit.block.data.BlockData? = null,
   var initialRightRotation: Quaternionf = Quaternionf(),
   var skullProfile: com.destroystokyo.paper.profile.PlayerProfile? = null,
+  var ownerUUID: java.util.UUID? = null,
 ) {
   /**
    * マルチブロックを構成する各ブロックパーツ

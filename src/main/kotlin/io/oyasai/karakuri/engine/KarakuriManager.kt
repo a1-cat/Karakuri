@@ -87,6 +87,12 @@ class KarakuriManager {
 
   fun get(id: String): KarakuriInstance? = instances[id]
 
+  fun canModify(player: org.bukkit.entity.Player, instance: KarakuriInstance): Boolean {
+    if (player.hasPermission("karakuri.admin") || player.isOp) return true
+    val owner = instance.ownerUUID ?: return true
+    return player.uniqueId == owner
+  }
+
   fun getByEntity(entity: org.bukkit.entity.Entity): KarakuriInstance? {
     val instanceId = entityIdToInstanceId[entity.uniqueId] ?: return null
     return instances[instanceId]
@@ -316,12 +322,13 @@ class KarakuriManager {
   fun spawn(
     block: Block,
     customId: String? = null,
+    player: org.bukkit.entity.Player? = null,
   ): KarakuriInstance {
     val loc = Location(block.world, block.x.toDouble(), block.y.toDouble(), block.z.toDouble(), 0f, 0f)
     val blockData = block.blockData.clone()
     val skullProfile = (block.state as? org.bukkit.block.Skull)?.playerProfile
     block.setType(Material.AIR, false) // 物理更新なしでAIR化（ステート破壊を防止）
-    return spawn(loc, blockData, customId, skullProfile)
+    return spawn(loc, blockData, customId, skullProfile, player)
   }
 
   /**
@@ -663,6 +670,7 @@ class KarakuriManager {
     blockData: BlockData,
     customId: String? = null,
     skullProfile: com.destroystokyo.paper.profile.PlayerProfile? = null,
+    player: org.bukkit.entity.Player? = null,
   ): KarakuriInstance {
     val id = customId ?: "kk-${idCounter.getAndIncrement()}"
     remove(id)
@@ -700,6 +708,7 @@ class KarakuriManager {
       initialRightRotation = initialRightRot,
       skullProfile = skullProfile,
     )
+    instance.ownerUUID = player?.uniqueId
     val wallOffset = getPlayerWallHeadOffset(blockData)
     instance.pivotOffset = if (display is org.bukkit.entity.ItemDisplay) {
       org.joml.Vector3f(-wallOffset.x, -wallOffset.y, -wallOffset.z)
@@ -732,9 +741,10 @@ class KarakuriManager {
     location: Location,
     material: Material,
     customId: String? = null,
+    player: org.bukkit.entity.Player? = null,
   ): KarakuriInstance {
     val blockData = if (material.isBlock) material.createBlockData() else Material.STONE.createBlockData()
-    return spawn(location, blockData, customId)
+    return spawn(location, blockData, customId, player = player)
   }
 
   /**
@@ -1070,13 +1080,7 @@ class KarakuriManager {
     for (instance in all) {
       if (instance.isDormant) continue
       if (!instance.isValid()) {
-        entityIdToInstanceId.remove(instance.displayEntity.uniqueId)
-        instance.interactionEntity?.let { entityIdToInstanceId.remove(it.uniqueId) }
-        for (part in instance.additionalParts) {
-          entityIdToInstanceId.remove(part.displayEntity.uniqueId)
-          part.interactionEntity?.let { entityIdToInstanceId.remove(it.uniqueId) }
-        }
-        instances.remove(instance.id)
+        revert(instance.id)
       }
     }
 
@@ -1807,6 +1811,7 @@ class KarakuriManager {
     val db = database
     if (db == null) {
       val inst = spawnComposite(blocks, pivotBlock, customId)
+      inst.ownerUUID = player?.uniqueId
       onSuccess(inst)
       return
     }
@@ -1884,6 +1889,7 @@ class KarakuriManager {
 
       // 検証成功: ブロックをAIR化し、エンティティを生成
       val instance = spawnComposite(blocks, pivotBlock, id)
+      instance.ownerUUID = player?.uniqueId
       db.markInstanceActive(id)
       db.updateInstanceGeometry(instance)
       onSuccess(instance)

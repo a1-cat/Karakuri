@@ -164,6 +164,11 @@ class KarakuriListener(
       val seatManager = io.oyasai.karakuri.KarakuriPlugin.instance.seatManager
       val carpetHit = seatManager.rayTraceCarpet(player)
       if (carpetHit != null) {
+        if (!manager.canModify(player, carpetHit.instance)) {
+          player.sendMessage(Component.text("⚠️ このからくりは所有者または管理者のみ操作できます。", NamedTextColor.RED))
+          event.isCancelled = true
+          return
+        }
         event.isCancelled = true
         seatManager.sit(player, carpetHit.instance, carpetHit.blockLoc, carpetHit.scaleY)
         return
@@ -384,10 +389,15 @@ class KarakuriListener(
         val clickedBlock = event.clickedBlock
 
         if (targetKarakuri == null && clickedBlock != null && !clickedBlock.type.isAir) {
-          targetKarakuri = manager.spawn(clickedBlock)
+          targetKarakuri = manager.spawn(clickedBlock, player = player)
         }
 
         if (targetKarakuri != null) {
+          if (!manager.canModify(player, targetKarakuri)) {
+            player.sendMessage(Component.text("⚠️ このからくりは所有者または管理者のみ操作できます。", NamedTextColor.RED))
+            event.isCancelled = true
+            return
+          }
           applyPistonRodLine(player, targetKarakuri)
         } else {
           player.sendMessage(Component.text("からくりまたはブロックに視線を合わせてShift+左クリックしてください。", NamedTextColor.RED))
@@ -399,6 +409,11 @@ class KarakuriListener(
       if ((action == Action.RIGHT_CLICK_BLOCK || action == Action.RIGHT_CLICK_AIR) && player.isSneaking) {
         val targetKarakuri = manager.rayTrace(player.eyeLocation, player.location.direction, 5.0)
         if (targetKarakuri != null) {
+          if (!manager.canModify(player, targetKarakuri)) {
+            player.sendMessage(Component.text("⚠️ このからくりは所有者または管理者のみ操作できます。", NamedTextColor.RED))
+            event.isCancelled = true
+            return
+          }
           event.isCancelled = true
           KarakuriLinearGUI(targetKarakuri).open(player)
           return
@@ -454,6 +469,13 @@ class KarakuriListener(
     // ==========================================
     if (isHoldingWrench) {
       val hit = manager.rayTraceDetailed(player.eyeLocation, player.location.direction, 5.0)
+      if (hit != null) {
+        if (!manager.canModify(player, hit.instance)) {
+          player.sendMessage(Component.text("⚠️ このからくりは所有者または管理者のみ操作できます。", NamedTextColor.RED))
+          event.isCancelled = true
+          return
+        }
+      }
 
       // (A) Shift + 左クリック: トロッコ合体モード解除、または初期位置リセット
       if ((action == Action.LEFT_CLICK_BLOCK || action == Action.LEFT_CLICK_AIR) && player.isSneaking) {
@@ -530,6 +552,11 @@ class KarakuriListener(
               it.blockLocation.blockZ == clickedBlock.z
             }
             if (link != null) {
+              if (!manager.canModify(player, inst)) {
+                player.sendMessage(Component.text("⚠️ このからくりは所有者または管理者のみ操作できます。", NamedTextColor.RED))
+                event.isCancelled = true
+                return
+              }
               event.isCancelled = true
               rsLinkManager.removeLink(inst, clickedBlock.location)
 
@@ -989,6 +1016,11 @@ class KarakuriListener(
       if (!isHoldingWrench && !isHoldingRod && !isHoldingGlue && !isHoldingToolbox) {
         val targetKarakuri = manager.rayTrace(player.eyeLocation, player.location.direction, 5.0)
         if (targetKarakuri != null) {
+          if (!manager.canModify(player, targetKarakuri)) {
+            player.sendMessage(Component.text("⚠️ このからくりは所有者または管理者のみ操作できます。", NamedTextColor.RED))
+            event.isCancelled = true
+            return
+          }
           event.isCancelled = true
           if (targetKarakuri.isImmovable) {
             player.sendActionBar(Component.text("🗿 このからくりは「不動」に設定されているため作動しません", NamedTextColor.RED))
@@ -1199,6 +1231,11 @@ class KarakuriListener(
         val kInst = manager.getKarakuriByMinecart(cartAbove)
 
         if (isHoldingWrench && kInst != null && cartMotion != null) {
+          if (!manager.canModify(player, kInst)) {
+            player.sendMessage(Component.text("⚠️ このからくりは所有者または管理者のみ操作できます。", NamedTextColor.RED))
+            event.isCancelled = true
+            return
+          }
           event.isCancelled = true
           io.oyasai.karakuri.gui.KarakuriMinecartGUI(kInst, cartMotion).open(player)
           return
@@ -1222,6 +1259,11 @@ class KarakuriListener(
         if (targetKarakuri == null || !targetKarakuri.isValid()) {
           selectingMinecartForInstance.remove(player.uniqueId)
           player.sendMessage(Component.text("❌ 対象のからくりが見つからないか無効です。", NamedTextColor.RED))
+          return
+        }
+        if (!manager.canModify(player, targetKarakuri)) {
+          player.sendMessage(Component.text("⚠️ このからくりは所有者または管理者のみ操作できます。", NamedTextColor.RED))
+          event.isCancelled = true
           return
         }
         if (manager.isKarakuriMinecart(entity)) {
@@ -1252,6 +1294,11 @@ class KarakuriListener(
         val seatManager = io.oyasai.karakuri.KarakuriPlugin.instance.seatManager
         val carpetHit = seatManager.rayTraceCarpet(player)
         if (carpetHit != null) {
+          if (!manager.canModify(player, carpetHit.instance)) {
+            player.sendMessage(Component.text("⚠️ このからくりは所有者または管理者のみ操作できます。", NamedTextColor.RED))
+            event.isCancelled = true
+            return
+          }
           seatManager.sit(player, carpetHit.instance, carpetHit.blockLoc, carpetHit.scaleY)
           return
         }
@@ -1303,6 +1350,11 @@ class KarakuriListener(
 
     // 3. からくり（またはからくりが乗ったトロッコ）に対する操作
     if (targetKarakuri == null) return
+    if (!manager.canModify(player, targetKarakuri)) {
+      player.sendMessage(Component.text("⚠️ このからくりは所有者または管理者のみ操作できます。", NamedTextColor.RED))
+      event.isCancelled = true
+      return
+    }
     event.isCancelled = true
 
     // ★からくり組み込みカーペットへの着席（素手通常右クリック最優先）
@@ -1310,6 +1362,11 @@ class KarakuriListener(
       val seatManager = io.oyasai.karakuri.KarakuriPlugin.instance.seatManager
       val carpetHit = seatManager.rayTraceCarpet(player)
       if (carpetHit != null) {
+        if (!manager.canModify(player, carpetHit.instance)) {
+          player.sendMessage(Component.text("⚠️ このからくりは所有者または管理者のみ操作できます。", NamedTextColor.RED))
+          event.isCancelled = true
+          return
+        }
         seatManager.sit(player, carpetHit.instance, carpetHit.blockLoc, carpetHit.scaleY)
         return
       }
@@ -1473,6 +1530,11 @@ class KarakuriListener(
         // 視線の先のブロックを精査（粘着ピストンまたは鎖なら子構造接続モードを優先！）
         val hit = manager.rayTraceDetailed(player.eyeLocation, player.location.direction, 5.0)
         val activeTarget = hit?.instance ?: targetKarakuri
+        if (!manager.canModify(player, activeTarget)) {
+          player.sendMessage(Component.text("⚠️ このからくりは所有者または管理者のみ操作できます。", NamedTextColor.RED))
+          event.isCancelled = true
+          return
+        }
         val hitLoc = hit?.hitBlockLocation
         val blockData = if (hitLoc != null) activeTarget.getBlockDataAt(hitLoc) else null
 

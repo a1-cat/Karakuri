@@ -171,7 +171,7 @@ class KarakuriCommand(
     }
 
     val blockData = if (material.isBlock) material.createBlockData() else Material.STONE.createBlockData()
-    val instance = manager.spawn(rawLoc, blockData, null, profile)
+    val instance = manager.spawn(rawLoc, blockData, null, profile, player = player)
     selectedInstance[player.uniqueId] = instance.id
 
     player.sendMessage(
@@ -207,6 +207,10 @@ class KarakuriCommand(
       player.sendMessage(Component.text("対象のからくりが見つかりません。視線を合わせるか /kk select してください。", NamedTextColor.RED))
       return
     }
+    if (!manager.canModify(player, inst)) {
+      player.sendMessage(Component.text("⚠️ このからくりは所有者または管理者のみ操作できます。", NamedTextColor.RED))
+      return
+    }
 
     val dx = args.getOrNull(1)?.toDoubleOrNull() ?: 0.0
     val dy = args.getOrNull(2)?.toDoubleOrNull() ?: 3.0
@@ -231,6 +235,10 @@ class KarakuriCommand(
   private fun handlePingPong(player: Player, args: Array<out String>) {
     val inst = getTargetInstance(player) ?: run {
       player.sendMessage(Component.text("対象のからくりが見つかりません。", NamedTextColor.RED))
+      return
+    }
+    if (!manager.canModify(player, inst)) {
+      player.sendMessage(Component.text("⚠️ このからくりは所有者または管理者のみ操作できます。", NamedTextColor.RED))
       return
     }
 
@@ -259,6 +267,10 @@ class KarakuriCommand(
       player.sendMessage(Component.text("対象のからくりが見つかりません。", NamedTextColor.RED))
       return
     }
+    if (!manager.canModify(player, inst)) {
+      player.sendMessage(Component.text("⚠️ このからくりは所有者または管理者のみ操作できます。", NamedTextColor.RED))
+      return
+    }
 
     val axis = Axis.fromString(args.getOrNull(1) ?: "y") ?: Axis.Y
     val angle = args.getOrNull(2)?.toFloatOrNull() ?: 90.0f
@@ -280,6 +292,10 @@ class KarakuriCommand(
       player.sendMessage(Component.text("対象のからくりが見つかりません。", NamedTextColor.RED))
       return
     }
+    if (!manager.canModify(player, inst)) {
+      player.sendMessage(Component.text("⚠️ このからくりは所有者または管理者のみ操作できます。", NamedTextColor.RED))
+      return
+    }
 
     val axis = Axis.fromString(args.getOrNull(1) ?: "y") ?: Axis.Y
     val dps = args.getOrNull(2)?.toFloatOrNull() ?: 90.0f
@@ -299,6 +315,10 @@ class KarakuriCommand(
       player.sendMessage(Component.text("対象のからくりが見つかりません。", NamedTextColor.RED))
       return
     }
+    if (!manager.canModify(player, inst)) {
+      player.sendMessage(Component.text("⚠️ このからくりは所有者または管理者のみ操作できます。", NamedTextColor.RED))
+      return
+    }
 
     val px = args.getOrNull(1)?.toFloatOrNull() ?: 0.5f
     val py = args.getOrNull(2)?.toFloatOrNull() ?: 0.5f
@@ -315,6 +335,10 @@ class KarakuriCommand(
       player.sendMessage(Component.text("対象のからくりが見つかりません。", NamedTextColor.RED))
       return
     }
+    if (!manager.canModify(player, inst)) {
+      player.sendMessage(Component.text("⚠️ このからくりは所有者または管理者のみ操作できます。", NamedTextColor.RED))
+      return
+    }
     inst.stopMotion()
     player.sendMessage(Component.text("⏹️ [${inst.id}] の動作を停止しました。", NamedTextColor.GRAY))
   }
@@ -322,6 +346,10 @@ class KarakuriCommand(
   private fun handleOptimize(player: Player, args: Array<out String>, optimize: Boolean) {
     val inst = getTargetInstance(player, args.getOrNull(1)) ?: run {
       player.sendMessage(Component.text("対象のからくりが見つかりません。", NamedTextColor.RED))
+      return
+    }
+    if (!manager.canModify(player, inst)) {
+      player.sendMessage(Component.text("⚠️ このからくりは所有者または管理者のみ操作できます。", NamedTextColor.RED))
       return
     }
     val modeArg = args.getOrNull(2)?.lowercase()
@@ -348,6 +376,10 @@ class KarakuriCommand(
   private fun handleNonFull(player: Player, args: Array<out String>) {
     val inst = getTargetInstance(player, args.getOrNull(1)) ?: run {
       player.sendMessage(Component.text("対象のからくりが見つかりません。", NamedTextColor.RED))
+      return
+    }
+    if (!manager.canModify(player, inst)) {
+      player.sendMessage(Component.text("⚠️ このからくりは所有者または管理者のみ操作できます。", NamedTextColor.RED))
       return
     }
     val newNonFull = !inst.optimizeNonFullBlocks
@@ -407,6 +439,11 @@ class KarakuriCommand(
       return
     }
 
+    if (!manager.canModify(player, inst)) {
+      player.sendMessage(Component.text("⚠️ このからくりは所有者または管理者のみ操作できます。", NamedTextColor.RED))
+      return
+    }
+
     val targetMode = when (modeArg) {
       "off" -> KarakuriInstance.DynamicCompMode.OFF
       "on", "v1", "endpoint" -> KarakuriInstance.DynamicCompMode.V1_ENDPOINT
@@ -463,6 +500,10 @@ class KarakuriCommand(
       player.sendMessage(Component.text("対象のからくりが見つかりません。", NamedTextColor.RED))
       return
     }
+    if (!manager.canModify(player, inst)) {
+      player.sendMessage(Component.text("⚠️ このからくりは所有者または管理者のみ操作できます。", NamedTextColor.RED))
+      return
+    }
 
     if (!manager.revert(inst.id, player)) {
       player.sendMessage(Component.text("⚠️ からくり [${inst.id}] の復元に失敗しました。", NamedTextColor.RED))
@@ -472,6 +513,10 @@ class KarakuriCommand(
   private fun handleRemove(player: Player, args: Array<out String>) {
     val inst = getTargetInstance(player, args.getOrNull(1)) ?: run {
       player.sendMessage(Component.text("対象のからくりが見つかりません。", NamedTextColor.RED))
+      return
+    }
+    if (!manager.canModify(player, inst)) {
+      player.sendMessage(Component.text("⚠️ このからくりは所有者または管理者のみ操作できます。", NamedTextColor.RED))
       return
     }
     val id = inst.id
