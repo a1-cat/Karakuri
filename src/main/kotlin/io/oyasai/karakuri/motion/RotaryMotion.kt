@@ -89,6 +89,7 @@ class ContinuousSpinMotion(
   }
 
   private var currentOrientation: Quaternionf = Quaternionf()
+  private var currentYawDeg: Float = 0f
 
   fun resetOrientation() {
     currentOrientation = Quaternionf()
@@ -105,8 +106,11 @@ class ContinuousSpinMotion(
   }
 
   override fun onStart(instance: KarakuriInstance) {
-    instance.restoreFromYawMode()
-    instance.cleanupDualEntities()
+    if (instance.dynamicCompMode != KarakuriInstance.DynamicCompMode.YAW_SPIN || axis != Axis.Y) {
+      instance.restoreFromYawMode()
+      instance.cleanupDualEntities()
+    }
+    currentYawDeg = 0f
     baseIsClockwise = degreesPerSecond >= 0
     currentOrientation = if (instance.currentRotation.lengthSquared() > 0.001f) {
       Quaternionf(instance.currentRotation).normalize()
@@ -154,11 +158,16 @@ class ContinuousSpinMotion(
 
     currentOrientation = nextOrientation
 
-    // 基準設定: durationTicks = 2, delayTicks = 0 (V2_ORTHO_T1 および RIGID_SYNC 検証時のみ 1-tick 補間)
-    val targetDuration = if (
-      instance.dynamicCompMode == KarakuriInstance.DynamicCompMode.V2_ORTHO_T1 ||
-      instance.dynamicCompMode == KarakuriInstance.DynamicCompMode.RIGID_SYNC
-    ) 1 else 2
-    instance.applyRotation(currentOrientation, durationTicks = targetDuration, delayTicks = 0)
+    if (instance.dynamicCompMode == KarakuriInstance.DynamicCompMode.YAW_SPIN && axis == Axis.Y) {
+      currentYawDeg = (currentYawDeg + deltaDeg) % 360f
+      instance.applyYawRotation(currentYawDeg, currentOrientation)
+    } else {
+      // 基準設定: durationTicks = 2, delayTicks = 0 (V2_ORTHO_T1 および RIGID_SYNC 検証時のみ 1-tick 補間)
+      val targetDuration = if (
+        instance.dynamicCompMode == KarakuriInstance.DynamicCompMode.V2_ORTHO_T1 ||
+        instance.dynamicCompMode == KarakuriInstance.DynamicCompMode.RIGID_SYNC
+      ) 1 else 2
+      instance.applyRotation(currentOrientation, durationTicks = targetDuration, delayTicks = 0)
+    }
   }
 }

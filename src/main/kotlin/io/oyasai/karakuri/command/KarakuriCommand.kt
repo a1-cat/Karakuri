@@ -405,7 +405,7 @@ class KarakuriCommand(
     var modeArg: String? = null
     var idArg: String? = null
 
-    val validModes = listOf("off", "on", "v1", "v2", "minimax", "endpoint", "v2ortho", "v2_ortho", "ortho", "v2orthot1", "v2_ortho_t1", "orthot1", "t1", "rigidsync", "rigid_sync", "rigid", "sync")
+    val validModes = listOf("off", "on", "v1", "v2", "minimax", "endpoint", "v2ortho", "v2_ortho", "ortho", "v2orthot1", "v2_ortho_t1", "orthot1", "t1", "rigidsync", "rigid_sync", "rigid", "sync", "yaw", "yawspin", "yaw_spin")
 
     if (args.size >= 3) {
       val arg1 = args[1].lowercase()
@@ -451,15 +451,17 @@ class KarakuriCommand(
       "v2ortho", "v2_ortho", "ortho" -> KarakuriInstance.DynamicCompMode.V2_ORTHOGONAL
       "v2orthot1", "v2_ortho_t1", "orthot1", "t1" -> KarakuriInstance.DynamicCompMode.V2_ORTHO_T1
       "rigidsync", "rigid_sync", "rigid", "sync" -> KarakuriInstance.DynamicCompMode.RIGID_SYNC
+      "yaw", "yawspin", "yaw_spin" -> KarakuriInstance.DynamicCompMode.YAW_SPIN
       else -> {
-        // トグルサイクル: OFF -> V1 -> V2 -> V2_ORTHO -> V2_ORTHO_T1 -> RIGID_SYNC -> OFF
+        // トグルサイクル: OFF -> V1 -> V2 -> V2_ORTHO -> V2_ORTHO_T1 -> RIGID_SYNC -> YAW_SPIN -> OFF
         when (inst.dynamicCompMode) {
           KarakuriInstance.DynamicCompMode.OFF -> KarakuriInstance.DynamicCompMode.V1_ENDPOINT
           KarakuriInstance.DynamicCompMode.V1_ENDPOINT -> KarakuriInstance.DynamicCompMode.V2_MINIMAX
           KarakuriInstance.DynamicCompMode.V2_MINIMAX -> KarakuriInstance.DynamicCompMode.V2_ORTHOGONAL
           KarakuriInstance.DynamicCompMode.V2_ORTHOGONAL -> KarakuriInstance.DynamicCompMode.V2_ORTHO_T1
           KarakuriInstance.DynamicCompMode.V2_ORTHO_T1 -> KarakuriInstance.DynamicCompMode.RIGID_SYNC
-          KarakuriInstance.DynamicCompMode.RIGID_SYNC -> KarakuriInstance.DynamicCompMode.OFF
+          KarakuriInstance.DynamicCompMode.RIGID_SYNC -> KarakuriInstance.DynamicCompMode.YAW_SPIN
+          KarakuriInstance.DynamicCompMode.YAW_SPIN -> KarakuriInstance.DynamicCompMode.OFF
         }
       }
     }
@@ -490,6 +492,10 @@ class KarakuriCommand(
       }
       KarakuriInstance.DynamicCompMode.RIGID_SYNC -> {
         player.sendMessage(Component.text("🔬 [${inst.id}] 動的サジッタ補正を【rigidsync (純粋剛体同期モード)】に設定しました。（duration=1, g=1.0, ブーストなし純粋剛体並進、更新点接合部誤差0mm）", NamedTextColor.GREEN))
+        player.playSound(player.location, Sound.BLOCK_BEACON_ACTIVATE, 1.0f, 2.0f)
+      }
+      KarakuriInstance.DynamicCompMode.YAW_SPIN -> {
+        player.sendMessage(Component.text("🔬 [${inst.id}] 動的サジッタ補正を【yaw (Y軸Yaw首振り真円モード)】に設定しました。（中心軸テレポート補間、サジッタ誤差0.000mm、256RPM完全対応）", NamedTextColor.LIGHT_PURPLE))
         player.playSound(player.location, Sound.BLOCK_BEACON_ACTIVATE, 1.0f, 2.0f)
       }
     }

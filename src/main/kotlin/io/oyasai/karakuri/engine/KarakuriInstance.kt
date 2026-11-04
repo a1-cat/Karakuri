@@ -297,7 +297,8 @@ class KarakuriInstance(
     V2_MINIMAX,    // 現行ミニマックス (等方ブースト、理論最大偏心8.58cm、軸リークあり)
     V2_ORTHOGONAL, // 回転軸直交分解ミニマックス (回転面のみブースト、軸変位0mm)
     V2_ORTHO_T1,   // 1-tick独立検証モード (durationTicks=1, 回転面直交射影即時補正)
-    RIGID_SYNC     // 1-tick純粋剛体同期モード (durationTicks=1, g=1.0, 動径ブーストなし剛体並進)
+    RIGID_SYNC,    // 1-tick純粋剛体同期モード (durationTicks=1, g=1.0, 動径ブーストなし剛体並進)
+    YAW_SPIN       // Y軸専用Yaw首振り真円モード (中心軸テレポート補間、サジッタ誤差0.000mm)
   }
 
   /**
